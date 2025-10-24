@@ -3,3 +3,11 @@
   vertical-align: top;
   border: 1px solid salmon;
 }
+canvas {
+  /* found on stack overflow*/
+  border: 2px solid black;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: white;
+  display: block;
+}
