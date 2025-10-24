@@ -1,6 +1,12 @@
-import exampleIconUrl from "./noun-paperclip-7598668-00449F.png";
 import "./style.css";
 
-document.body.innerHTML = `
-  <p>Example image asset: <img src="${exampleIconUrl}" class="icon" /></p>
-`;
+const canvas = document.createElement("canvas");
+
+canvas.id = "Canvas";
+canvas.width = 256;
+canvas.height = 256;
+const render = canvas.getContext("2d")!;
+render.lineWidth = 4;
+render.lineCap = "round";
+render.strokeStyle = "black";
+document.body.appendChild(canvas);
