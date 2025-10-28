@@ -1,5 +1,9 @@
 import "./style.css";
 
+const title = document.createElement("h1");
+title.textContent = "Sticker Sketchad";
+document.body.appendChild(title);
+
 const canvas = document.createElement("canvas");
 
 canvas.id = "Canvas";
@@ -38,3 +42,27 @@ canvas.addEventListener("mousemove", (e) => {
 ["mouseup", "mouseleave"].forEach((eventType) => {
   canvas.addEventListener(eventType, () => (drawing = false));
 });
+
+const clear = document.createElement("button");
+clear.textContent = "Clear";
+clear.addEventListener("click", () => {
+  render.clearRect(0, 0, canvas.width, canvas.height);
+});
+document.body.appendChild(clear);
+
+const undo = document.createElement("button");
+undo.textContent = "Undo";
+undo.addEventListener("click", () => {
+  //undo
+});
+document.body.appendChild(clear);
+
+const redo = document.createElement("button");
+redo.textContent = "Redo";
+redo.addEventListener("click", () => {
+  //redo
+});
+
+document.body.appendChild(clear);
+document.body.appendChild(undo);
+document.body.appendChild(redo);
