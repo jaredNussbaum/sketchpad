@@ -16,8 +16,6 @@ render.strokeStyle = "black";
 document.body.appendChild(canvas);
 
 let drawing = false;
-let last_x = 0;
-let last_y = 0;
 
 /*canvas.addEventListener("mousedown", (e) => {
   drawing = true;
@@ -96,7 +94,7 @@ canvas.addEventListener("mousemove", (pos) => {
   canvas.addEventListener(event, () => (drawing = false))
 );
 
-let stack: Point[][] = [];
+const stack: Point[][] = [];
 
 const redo = document.createElement("button");
 redo.textContent = "Redo";
