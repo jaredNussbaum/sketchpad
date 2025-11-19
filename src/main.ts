@@ -231,11 +231,36 @@ document.body.append(stickerDiv);
 const stickers = ["🐴", "🍎", "🥕", "🍪"]; // <-- STEP 9
 
 for (const i of stickers) {
-  const btn = document.createElement("button");
-  btn.textContent = i;
-  btn.addEventListener("click", () => {
+  const button = document.createElement("button");
+  button.textContent = i;
+  button.addEventListener("click", () => {
     currently_used_tool = { type: "sticker", emoji: i };
     canvas.dispatchEvent(new Event(TOOL_MOVED));
   });
-  document.body.appendChild(btn);
+  document.body.appendChild(button);
 }
+
+const exportDiv = document.createElement("div");
+drawingDiv.id = "exportPanel";
+document.body.append(exportDiv);
+
+const export_button = document.createElement("button");
+export_button.textContent = "Export PNG (1024×1024)";
+export_button.addEventListener("click", () => {
+  const export_png = document.createElement("canvas");
+  export_png.width = 1024;
+  export_png.height = 1024;
+  const large_render = export_png.getContext("2d")!;
+  large_render.scale(4, 4);
+  for (const line of sketch) {
+    line.display(large_render);
+  }
+  const dL: HTMLAnchorElement = document.createElement("a")!;
+  if (dL.href != null) {
+    dL.href = export_png.toDataURL("image/png");
+  }
+  dL.download = "my_amazing_drawing.png";
+  dL.click();
+});
+
+exportDiv.appendChild(export_button);
