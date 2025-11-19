@@ -14,33 +14,14 @@ render.lineWidth = 4;
 render.lineCap = "round";
 render.strokeStyle = "black";
 document.body.appendChild(canvas);
-let line_thickness: number = 4;
 let drawing = false;
 
-/*canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  const rect = canvas.getBoundingClientRect();
-  last_x = e.clientX - rect.left;
-  last_y = e.clientY - rect.top;
-});
+let line_thickness: number = 4;
+type Tool =
+  | { type: "marker"; thickness: number }
+  | { type: "sticker"; emoji: string };
 
-canvas.addEventListener("mousemove", (e) => {
-  if (!drawing) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  render.beginPath();
-  render.moveTo(last_x, last_y);
-  render.lineTo(x, y);
-  render.stroke();
-  last_x = x;
-  last_y = y;
-});
-
-["mouseup", "mouseleave"].forEach((eventType) => {
-  canvas.addEventListener(eventType, () => (drawing = false));
-});
-*/
+let currently_used_tool: Tool = { type: "marker", thickness: line_thickness };
 
 // Interfaces
 interface DisplayCommand {
@@ -82,6 +63,30 @@ class MarkerCommand implements DisplayCommand {
   }
 }
 
+class StickerCommand implements DisplayCommand {
+  x: number;
+  y: number;
+  emoji: string;
+
+  constructor(initial: Point, emoji: string) {
+    this.x = initial.x;
+    this.y = initial.y;
+    this.emoji = emoji;
+  }
+
+  drag(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  display(ctx: CanvasRenderingContext2D) {
+    ctx.font = "32px sans-serif";
+    ctx.globalAlpha = 1.0;
+    ctx.fillText(this.emoji, this.x, this.y);
+  }
+}
+
+// CODE
 const clear = document.createElement("button");
 clear.textContent = "Clear";
 clear.addEventListener("click", () => {
@@ -105,17 +110,28 @@ canvas.addEventListener(DRAWING_CHANGED, () => {
     line.display(render);
   }
   if (circle_preview && !drawing) {
-    render.beginPath();
-    render.lineWidth = 1;
-    render.strokeStyle = "black";
-    render.arc(
-      circle_preview.x,
-      circle_preview.y,
-      line_thickness,
-      0,
-      Math.PI * 2,
-    );
-    render.stroke();
+    if (currently_used_tool.type === "marker") {
+      render.beginPath();
+      render.lineWidth = 1;
+      render.strokeStyle = "gray";
+      render.arc(
+        circle_preview.x,
+        circle_preview.y,
+        currently_used_tool.thickness,
+        0,
+        Math.PI * 2,
+      );
+      render.stroke();
+    } else if (currently_used_tool.type === "sticker") {
+      render.font = "32px sans-serif";
+      render.globalAlpha = 0.5;
+      render.fillText(
+        currently_used_tool.emoji,
+        circle_preview.x,
+        circle_preview.y,
+      );
+      render.globalAlpha = 1.0;
+    }
   }
 });
 
@@ -126,9 +142,18 @@ canvas.addEventListener("mousedown", (pos) => {
     y: pos.clientY - canvas_rect.top,
   };
 
-  last_stroke = new MarkerCommand(starting_point, line_thickness);
-  sketch.push(last_stroke);
-  drawing = true;
+  if (currently_used_tool.type === "marker") {
+    last_stroke = new MarkerCommand(
+      starting_point,
+      currently_used_tool.thickness,
+    );
+    sketch.push(last_stroke);
+    drawing = true;
+  } else if (currently_used_tool.type === "sticker") {
+    last_stroke = new StickerCommand(starting_point, currently_used_tool.emoji);
+    sketch.push(last_stroke);
+    drawing = true; // allow repositioning via drag
+  }
 });
 
 canvas.addEventListener("mousemove", (pos) => {
@@ -185,15 +210,32 @@ drawingDiv.id = "buttonPanel";
 document.body.append(drawingDiv);
 
 const thin = document.createElement("button");
-thin.textContent = "Thin Marker";
+thin.textContent = "TOOL: Thin Marker";
 thin.addEventListener("click", () => {
-  line_thickness = 2;
+  line_thickness = 4;
+  currently_used_tool = { type: "marker", thickness: line_thickness };
 });
 
 const thick = document.createElement("button");
-thick.textContent = "Thick Marker";
+thick.textContent = "TOOL: Thick Marker";
 thick.addEventListener("click", () => {
   line_thickness = 8;
+  currently_used_tool = { type: "marker", thickness: line_thickness };
 });
 drawingDiv.appendChild(thin);
 drawingDiv.appendChild(thick);
+
+const stickerDiv = document.createElement("div");
+drawingDiv.id = "stickerPanel";
+document.body.append(stickerDiv);
+const stickers = ["🐴", "🍎", "🥕", "🍪"];
+
+for (const i of stickers) {
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.addEventListener("click", () => {
+    currently_used_tool = { type: "sticker", emoji: i };
+    canvas.dispatchEvent(new Event(TOOL_MOVED));
+  });
+  document.body.appendChild(btn);
+}
