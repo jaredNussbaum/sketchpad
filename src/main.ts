@@ -94,7 +94,6 @@ document.body.appendChild(clear);
 type Point = { x: number; y: number };
 let sketch: DisplayCommand[] = [];
 let last_stroke: DisplayCommand | null = null;
-let circle_preview: Point | null = null;
 
 const DRAWING_CHANGED = "DRAWING_CHANGED";
 
