@@ -10,7 +10,7 @@ canvas.id = "Canvas";
 canvas.width = 256;
 canvas.height = 256;
 const render = canvas.getContext("2d")!;
-render.lineWidth = 4;
+render.lineWidth = 3;
 render.lineCap = "round";
 render.strokeStyle = "black";
 document.body.appendChild(canvas);
@@ -21,7 +21,11 @@ type Tool =
   | { type: "marker"; thickness: number }
   | { type: "sticker"; emoji: string };
 
-let currently_used_tool: Tool = { type: "marker", thickness: line_thickness };
+let current_color: string = "black";
+let currently_used_tool: Tool = {
+  type: "marker",
+  thickness: line_thickness,
+};
 
 // Interfaces
 interface DisplayCommand {
@@ -31,10 +35,12 @@ interface DisplayCommand {
 class MarkerCommand implements DisplayCommand {
   points: Point[] = [];
   thickness: number;
+  color: string;
 
-  constructor(initial: Point, thickness = 4) {
+  constructor(initial: Point, thickness = 4, color = "black") {
     this.points.push(initial);
     this.thickness = thickness;
+    this.color = color;
   }
 
   drag(x: number, y: number) {
@@ -46,13 +52,14 @@ class MarkerCommand implements DisplayCommand {
       const p = this.points[0];
       ctx.beginPath();
       ctx.arc(p.x, p.y, this.thickness / 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
       ctx.fill();
       return;
     }
 
     ctx.lineWidth = this.thickness;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = this.color;
 
     ctx.beginPath();
     ctx.moveTo(this.points[0].x, this.points[0].y);
@@ -124,13 +131,11 @@ canvas.addEventListener(DRAWING_CHANGED, () => {
       render.stroke();
     } else if (currently_used_tool.type === "sticker") {
       render.font = "32px sans-serif";
-      render.globalAlpha = 0.5;
       render.fillText(
         currently_used_tool.emoji,
         circle_preview.x,
         circle_preview.y,
       );
-      render.globalAlpha = 1.0;
     }
   }
 });
@@ -146,6 +151,7 @@ canvas.addEventListener("mousedown", (pos) => {
     last_stroke = new MarkerCommand(
       starting_point,
       currently_used_tool.thickness,
+      current_color,
     );
     sketch.push(last_stroke);
     drawing = true;
@@ -172,6 +178,10 @@ canvas.addEventListener("mousemove", (pos) => {
 canvas.addEventListener(TOOL_MOVED, () => {
   canvas.dispatchEvent(new Event(DRAWING_CHANGED));
 });
+
+function set_random_color() {
+  current_color = `hsl(${Math.floor(Math.random() * 360)}, 90%, 50%)`;
+}
 
 // STACK
 const stack: DisplayCommand[] = [];
@@ -212,15 +222,17 @@ document.body.append(drawingDiv);
 const thin = document.createElement("button");
 thin.textContent = "TOOL: Thin Marker";
 thin.addEventListener("click", () => {
-  line_thickness = 4;
+  line_thickness = 3;
   currently_used_tool = { type: "marker", thickness: line_thickness };
+  set_random_color();
 });
 
 const thick = document.createElement("button");
 thick.textContent = "TOOL: Thick Marker";
 thick.addEventListener("click", () => {
-  line_thickness = 8;
+  line_thickness = 6;
   currently_used_tool = { type: "marker", thickness: line_thickness };
+  set_random_color();
 });
 drawingDiv.appendChild(thin);
 drawingDiv.appendChild(thick);
