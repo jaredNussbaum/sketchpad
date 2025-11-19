@@ -228,7 +228,7 @@ drawingDiv.appendChild(thick);
 const stickerDiv = document.createElement("div");
 drawingDiv.id = "stickerPanel";
 document.body.append(stickerDiv);
-const stickers = ["🐴", "🍎", "🥕", "🍪"];
+const stickers = ["🐴", "🍎", "🥕", "🍪"]; // <-- STEP 9
 
 for (const i of stickers) {
   const btn = document.createElement("button");
