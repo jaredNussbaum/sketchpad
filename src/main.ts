@@ -94,14 +94,28 @@ document.body.appendChild(clear);
 type Point = { x: number; y: number };
 let sketch: DisplayCommand[] = [];
 let last_stroke: DisplayCommand | null = null;
+let circle_preview: Point = { x: 0, y: 0 };
 
 const DRAWING_CHANGED = "DRAWING_CHANGED";
+const TOOL_MOVED = "TOOL_MOVED";
 
 canvas.addEventListener(DRAWING_CHANGED, () => {
   render.clearRect(0, 0, 256, 256);
-  render.beginPath();
   for (const line of sketch) {
     line.display(render);
+  }
+  if (circle_preview && !drawing) {
+    render.beginPath();
+    render.lineWidth = 1;
+    render.strokeStyle = "black";
+    render.arc(
+      circle_preview.x,
+      circle_preview.y,
+      line_thickness,
+      0,
+      Math.PI * 2,
+    );
+    render.stroke();
   }
 });
 
@@ -118,18 +132,23 @@ canvas.addEventListener("mousedown", (pos) => {
 });
 
 canvas.addEventListener("mousemove", (pos) => {
-  if (!drawing) return;
   const canvas_rect = canvas.getBoundingClientRect();
   const x = pos.clientX - canvas_rect.left;
   const y = pos.clientY - canvas_rect.top;
+  circle_preview = { x, y };
+  canvas.dispatchEvent(new Event(TOOL_MOVED));
+  if (!drawing) return;
   last_stroke!.drag!(x, y);
-  canvas.dispatchEvent(new Event(DRAWING_CHANGED));
 });
 
 ["mouseup", "mouseleave"].forEach((event) =>
   canvas.addEventListener(event, () => (drawing = false))
 );
+canvas.addEventListener(TOOL_MOVED, () => {
+  canvas.dispatchEvent(new Event(DRAWING_CHANGED));
+});
 
+// STACK
 const stack: DisplayCommand[] = [];
 
 const redo = document.createElement("button");
